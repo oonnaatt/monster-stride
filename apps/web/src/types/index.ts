@@ -1,0 +1,73 @@
+export type Pace = 'walk' | 'jog' | 'run' | 'sprint';
+export type Biome = 'urban' | 'forest' | 'mountain' | 'coastal' | 'desert' | 'suburban';
+export type Weather = 'sunny' | 'cloudy' | 'rain' | 'storm' | 'thunderstorm' | 'snow' | 'fog';
+export type TimeOfDay = 'dawn' | 'morning' | 'noon' | 'afternoon' | 'dusk' | 'night' | 'midnight';
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
+export type EvolutionTier = 'Hatchling' | 'Juvenile' | 'Adult' | 'Elder' | 'Ascended';
+
+export interface Activity {
+  id: string;
+  user_id: string;
+  distance_km: number;
+  pace: Pace;
+  biome: Biome;
+  weather: Weather;
+  time_of_day: TimeOfDay;
+  season: Season;
+  elevation_gain_m: number;
+  logged_at: string;
+  created_at: string;
+}
+
+export interface PlayerStats {
+  id: string;
+  user_id: string;
+  total_km: number;
+  current_egg_km: number;
+  streak_days: number;
+  last_active_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Monster {
+  id: string;
+  user_id: string;
+  name: string | null;
+  primary_type: string;
+  secondary_type: string | null;
+  tertiary_type: string | null;
+  traits: string[];
+  evolution_tier: EvolutionTier;
+  current_exp: number;
+  total_exp: number;
+  birth_pace: Pace;
+  birth_biome: Biome;
+  birth_weather: Weather;
+  birth_time_of_day: TimeOfDay;
+  birth_season: Season;
+  attack_power: number;
+  defense_power: number;
+  speed_power: number;
+  hatched_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LogActivityRequest {
+  distance_km: number;
+  pace: Pace;
+  biome: Biome;
+  weather: Weather;
+  time_of_day: TimeOfDay;
+  season: Season;
+  elevation_gain_m?: number;
+}
+
+export interface LogActivityResponse {
+  activity: Activity;
+  playerStats: PlayerStats;
+  hatchedMonster?: Monster;
+  expGained?: number;
+  evolutionEvent?: string;
+}
