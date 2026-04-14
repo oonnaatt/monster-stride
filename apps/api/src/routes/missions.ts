@@ -33,6 +33,17 @@ export async function missionsRoutes(fastify: FastifyInstance) {
       try {
         const { mission_id, remnon_id } = request.body;
 
+        // Validate mission_id
+        if (!mission_id || typeof mission_id !== 'string' || mission_id.trim().length === 0 || mission_id.length > 64) {
+          return reply.status(400).send({ error: 'mission_id must be a non-empty string of at most 64 characters' });
+        }
+
+        // Validate remnon_id if provided
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (remnon_id !== undefined && remnon_id !== null && !uuidRegex.test(remnon_id)) {
+          return reply.status(400).send({ error: 'remnon_id must be a valid UUID' });
+        }
+
         if (!MISSIONS.find(m => m.id === mission_id)) {
           return reply.status(400).send({ error: 'Unknown mission' });
         }

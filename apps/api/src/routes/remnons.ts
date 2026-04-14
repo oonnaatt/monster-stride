@@ -10,6 +10,8 @@ async function ensureThemeSong(remnon: Record<string, unknown>): Promise<Record<
   return { ...remnon, theme_song: song };
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function remnonsRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', fastify.authenticate);
 
@@ -34,6 +36,9 @@ export async function remnonsRoutes(fastify: FastifyInstance) {
     '/remnons/:id',
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       try {
+        if (!UUID_REGEX.test(request.params.id)) {
+          return reply.status(400).send({ error: 'Invalid remnon ID format' });
+        }
         const { data, error } = await supabase
           .from('remnons')
           .select('*')
@@ -56,6 +61,9 @@ export async function remnonsRoutes(fastify: FastifyInstance) {
     '/remnons/:id/name',
     async (request: FastifyRequest<{ Params: { id: string }; Body: { name: string } }>, reply: FastifyReply) => {
       try {
+        if (!UUID_REGEX.test(request.params.id)) {
+          return reply.status(400).send({ error: 'Invalid remnon ID format' });
+        }
         const { name } = request.body;
         const trimmedName = typeof name === 'string' ? name.trim() : '';
         if (!trimmedName) {

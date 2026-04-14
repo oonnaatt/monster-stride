@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import 'dotenv/config';
 import { activitiesRoutes } from './routes/activities';
@@ -39,6 +40,13 @@ server.decorate('authenticate', async function (
 });
 
 async function main() {
+  // ── Security headers (Helmet) ────────────────────────────────────────────
+  // Disable CSP (handled client-side via meta tag) but enable all other protections.
+  await server.register(helmet, {
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  });
+
   // ── Rate limiting ────────────────────────────────────────────────────────
   // Global: 200 requests per IP per minute across all routes.
   // Individual expensive routes declare a stricter config (see route files).
@@ -63,6 +71,23 @@ async function main() {
 
   await server.register(cors, { origin: corsOrigin });
 
+  // ── Content-Type enforcement ─────────────────────────────────────────────
+  // Reject POST/PUT/PATCH requests without application/json Content-Type.
+  server.addHook('preValidation', async (request, reply) => {
+    if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
+      const contentType = request.headers['content-type'];
+      if (!contentType || !contentType.includes('application/json')) {
+        return reply.status(415).send({ error: 'Content-Type must be application/json' });
+      }
+    }
+  });
+
+  // ── Request ID tracing ───────────────────────────────────────────────────
+  // Expose Fastify's built-in request ID as a response header for incident tracing.
+  server.addHook('onSend', async (request, reply) => {
+    reply.header('X-Request-Id', request.id);
+  });
+
   server.get('/health', async () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -80,6 +105,17 @@ async function main() {
     server.log.error(err);
     process.exit(1);
   }
+
+  // ── Graceful shutdown ────────────────────────────────────────────────────
+  // Finish in-flight requests before exiting (important for containers / K8s).
+  const shutdown = async (signal: string) => {
+    server.log.info(`Received ${signal}, shutting down gracefully...`);
+    await server.close();
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 main();
