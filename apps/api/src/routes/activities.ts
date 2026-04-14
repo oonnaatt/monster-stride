@@ -73,9 +73,9 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
         let streakDays = 1;
         if (existingStats) {
           const lastDate = existingStats.last_active_date;
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          const yesterdayStr = yesterday.toISOString().split('T')[0];
+          const now = new Date();
+          const yesterdayStr = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+            .toISOString().split('T')[0];
 
           if (lastDate === today) {
             streakDays = existingStats.streak_days;

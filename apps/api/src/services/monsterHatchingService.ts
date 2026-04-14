@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Monster, Activity } from '../types/index';
 import type { MonsterType } from '@monster-stride/shared';
-import { FANTASY_SUFFIXES, TYPE_BASE_STATS } from '@monster-stride/shared';
+import { FANTASY_SUFFIXES, TYPE_BASE_STATS, DEFAULT_STAT_VALUE } from '@monster-stride/shared';
 
 // DEMO: 50km incubation window — production value: 1000km
 const INCUBATION_WINDOW_KM = 50;
@@ -103,7 +103,9 @@ function determineTraits(activities: Activity[]): string[] {
 }
 
 function calculateStats(types: MonsterType[]): { attack: number; defense: number; speed: number } {
-  if (types.length === 0) return { attack: 10, defense: 10, speed: 10 };
+  if (types.length === 0) {
+    return { attack: DEFAULT_STAT_VALUE, defense: DEFAULT_STAT_VALUE, speed: DEFAULT_STAT_VALUE };
+  }
 
   const totals = types.reduce(
     (acc, type) => {
