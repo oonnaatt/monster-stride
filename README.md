@@ -101,3 +101,56 @@ EXP is awarded based on:
 | GET | `/api/monsters` | List monsters |
 | GET | `/api/monsters/:id` | Get monster |
 | PATCH | `/api/monsters/:id/name` | Rename monster |
+
+## Deployment
+
+### Prerequisites
+
+- A [Supabase](https://supabase.com) project (database + auth)
+- A [Railway](https://railway.app) account for the API
+- A [Vercel](https://vercel.com) account for the frontend
+
+### GitHub Actions Secrets
+
+Go to **Settings → Secrets and variables → Actions** in your GitHub repository and add the following secrets:
+
+| Secret | Description |
+|--------|-------------|
+| `VERCEL_TOKEN` | Vercel personal access token (Account Settings → Tokens) |
+| `VERCEL_ORG_ID` | Your Vercel team/org ID (Project Settings) |
+| `VERCEL_PROJECT_ID` | Your Vercel project ID (Project Settings) |
+| `RAILWAY_TOKEN` | Railway API token (Account Settings → Tokens) |
+| `RAILWAY_SERVICE_ID` | Railway service ID (project → service settings) |
+| `SUPABASE_ACCESS_TOKEN` | Supabase personal access token (Account → Access Tokens) |
+| `SUPABASE_PROJECT_REF` | Your Supabase project reference ID |
+
+### Railway Environment Variables (API)
+
+Set these in your Railway service environment:
+
+```
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+ALLOWED_ORIGINS=https://yourdomain.vercel.app,https://yourdomain.com
+NODE_ENV=production
+PORT=3001
+```
+
+### Vercel Environment Variables (Frontend)
+
+Set these in your Vercel project settings:
+
+```
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_API_URL=https://your-railway-api-url.railway.app
+```
+
+### CI/CD Pipeline
+
+- **CI** (`.github/workflows/ci.yml`): Runs `pnpm install`, `pnpm build`, and `pnpm lint` on every push and pull request.
+- **Deploy** (`.github/workflows/deploy.yml`): Triggered on merge to `main`:
+  1. Builds and lints the full monorepo
+  2. Deploys the frontend (`apps/web`) to **Vercel**
+  3. Deploys the API (`apps/api`) to **Railway** using the multi-stage `Dockerfile`
+  4. Runs `supabase db push` to apply pending database migrations

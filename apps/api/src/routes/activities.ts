@@ -40,9 +40,18 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
   // Stricter limit: posting an activity triggers heavy DB work + AI services.
   // Allow at most 30 submissions per IP per minute (generous for real users,
   // tight enough to blunt automated floods).
+  // Per-user limit of 10/min prevents rotating-IP floods from a single account.
   fastify.post<{ Body: LogActivityRequest }>(
     '/activities',
-    { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } },
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: '1 minute',
+          keyGenerator: (request) => request.userId ?? request.ip,
+        },
+      },
+    },
     async (request: FastifyRequest<{ Body: LogActivityRequest }>, reply: FastifyReply) => {
       try {
         const { distance_km, pace, biome, weather, time_of_day, season, elevation_gain_m = 0, battle_mode = 'damage' } = request.body;
@@ -54,6 +63,31 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
         }
         if (!Number.isFinite(elevation_gain_m) || elevation_gain_m < 0) {
           return reply.status(400).send({ error: 'elevation_gain_m must be a non-negative number' });
+        }
+
+        // Sanitize and validate string fields
+        const strFields: Array<{ key: string; value: unknown; maxLen: number }> = [
+          { key: 'biome', value: biome, maxLen: 50 },
+          { key: 'weather', value: weather, maxLen: 50 },
+          { key: 'time_of_day', value: time_of_day, maxLen: 50 },
+          { key: 'season', value: season, maxLen: 50 },
+          { key: 'pace', value: pace, maxLen: 20 },
+        ];
+        for (const { key, value, maxLen } of strFields) {
+          if (value !== undefined && value !== null) {
+            if (typeof value !== 'string') {
+              return reply.status(400).send({ error: `${key} must be a string` });
+            }
+            const trimmed = value.trim();
+            if (trimmed.length > maxLen) {
+              return reply.status(400).send({ error: `${key} must be at most ${maxLen} characters` });
+            }
+          }
+        }
+
+        // Validate battle_mode enum
+        if (battle_mode !== 'damage' && battle_mode !== 'hp') {
+          return reply.status(400).send({ error: "battle_mode must be 'damage' or 'hp'" });
         }
 
         // 1. Insert activity

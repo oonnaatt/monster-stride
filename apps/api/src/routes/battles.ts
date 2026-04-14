@@ -29,6 +29,20 @@ export async function battlesRoutes(fastify: FastifyInstance) {
         } = request.body ?? {};
         const userId = request.userId;
 
+        // Input validation
+        if (typeof biome !== 'string' || biome.trim().length > 50) {
+          return reply.status(400).send({ error: 'biome must be a string of at most 50 characters' });
+        }
+        if (typeof weather !== 'string' || weather.trim().length > 50) {
+          return reply.status(400).send({ error: 'weather must be a string of at most 50 characters' });
+        }
+        if (!Number.isFinite(distance_km) || distance_km <= 0) {
+          return reply.status(400).send({ error: 'distance_km must be a finite positive number' });
+        }
+        if (battle_mode !== 'damage' && battle_mode !== 'hp') {
+          return reply.status(400).send({ error: "battle_mode must be 'damage' or 'hp'" });
+        }
+
         // Get lead remnon (most recently hatched that is not yet Ascended, else first)
         const { data: remnons, error: remnonError } = await supabase
           .from('remnons')
