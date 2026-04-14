@@ -3,9 +3,9 @@ export const PRIMARY_TYPES = [
   'Ice', 'Shadow', 'Light', 'Mecha', 'Fog', 'Nocturnal', 'Void'
 ] as const;
 
-export type MonsterType = typeof PRIMARY_TYPES[number];
+export type RemnonType = typeof PRIMARY_TYPES[number];
 
-export const TYPE_BASE_STATS: Record<MonsterType, { attack: number; defense: number; speed: number }> = {
+export const TYPE_BASE_STATS: Record<RemnonType, { attack: number; defense: number; speed: number }> = {
   Fire:      { attack: 15, defense: 10, speed: 13 },
   Water:     { attack: 10, defense: 10, speed: 10 },
   Earth:     { attack: 10, defense: 15, speed: 10 },

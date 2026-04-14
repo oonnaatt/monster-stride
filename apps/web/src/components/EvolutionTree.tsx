@@ -20,17 +20,17 @@ export function EvolutionTree({ currentTier }: EvolutionTreeProps) {
           <div
             className={`flex flex-col items-center px-2 py-1 rounded-lg transition-all ${
               idx === currentIdx
-                ? 'bg-indigo-600 text-white scale-110'
+                ? 'bg-gradient-to-b from-violet-500 to-fuchsia-500 text-white scale-110'
                 : idx < currentIdx
-                ? 'text-gray-400 opacity-60'
-                : 'text-gray-500 opacity-40'
+                ? 'text-violet-400 opacity-70'
+                : 'text-slate-400 opacity-40'
             }`}
           >
             <span className="text-xl">{tier.emoji}</span>
             <span className="text-xs mt-1 font-medium">{tier.name}</span>
           </div>
           {idx < TIERS.length - 1 && (
-            <span className={`mx-1 text-gray-600 ${idx < currentIdx ? 'text-indigo-500' : ''}`}>→</span>
+            <span className={`mx-1 text-slate-300 ${idx < currentIdx ? 'text-violet-400' : ''}`}>→</span>
           )}
         </div>
       ))}

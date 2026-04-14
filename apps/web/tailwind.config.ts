@@ -4,6 +4,9 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Nunito', 'system-ui', 'sans-serif'],
+      },
       keyframes: {
         pulse: {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },

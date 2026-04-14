@@ -1,11 +1,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import type { LogActivityRequest } from '@monster-stride/shared';
+import { MIN_DISTANCE_KM, MAX_DISTANCE_KM, HATCHING_THRESHOLD_KM } from '@monster-stride/shared';
 import { supabase } from '../lib/supabase';
-import { hatchMonster } from '../services/monsterHatchingService';
+import { hatchRemnon } from '../services/remnonHatchingService';
 import { awardExp } from '../services/expService';
-
-// DEMO MODE: 100km threshold — production value: 10000km
-const HATCHING_THRESHOLD_KM = 100;
+import { checkAndCompleteMissions } from '../services/missionService';
+import { replenishCharges, getSkillsForRemnon } from '../services/skillService';
+import { runWildChallenge } from '../services/wildChallengeService';
 
 export async function activitiesRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', fastify.authenticate);
@@ -40,8 +41,16 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
     '/activities',
     async (request: FastifyRequest<{ Body: LogActivityRequest }>, reply: FastifyReply) => {
       try {
-        const { distance_km, pace, biome, weather, time_of_day, season, elevation_gain_m = 0 } = request.body;
+        const { distance_km, pace, biome, weather, time_of_day, season, elevation_gain_m = 0, battle_mode = 'damage' } = request.body;
         const userId = request.userId;
+
+        // Input validation
+        if (!Number.isFinite(distance_km) || distance_km < MIN_DISTANCE_KM || distance_km > MAX_DISTANCE_KM) {
+          return reply.status(400).send({ error: `distance_km must be between ${MIN_DISTANCE_KM} and ${MAX_DISTANCE_KM}` });
+        }
+        if (!Number.isFinite(elevation_gain_m) || elevation_gain_m < 0) {
+          return reply.status(400).send({ error: 'elevation_gain_m must be a non-negative number' });
+        }
 
         // 1. Insert activity
         const { data: activity, error: activityError } = await supabase
@@ -104,42 +113,97 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
 
         if (statsError) throw new Error(statsError.message);
 
-        let hatchedMonster = undefined;
-        let expGained = undefined;
-        let evolutionEvent = undefined;
-
-        // 3. Check if egg hatches — DEMO MODE: 100km threshold
-        if (newEggKm >= HATCHING_THRESHOLD_KM) {
-          const remainder = newEggKm - HATCHING_THRESHOLD_KM;
-          await supabase
-            .from('player_stats')
-            .update({ current_egg_km: remainder, updated_at: new Date().toISOString() })
-            .eq('user_id', userId);
-          playerStats.current_egg_km = remainder;
-
-          hatchedMonster = await hatchMonster(userId, supabase);
-        }
-
-        // 4. Award EXP to existing monsters
-        const { data: monsters } = await supabase
-          .from('monsters')
+        // 3. Load existing remnons (needed for hatch eligibility + EXP)
+        const { data: remnons } = await supabase
+          .from('remnons')
           .select('*')
           .eq('user_id', userId);
 
-        if (monsters && monsters.length > 0) {
+        let hatchedRemnon = undefined;
+        let expGained = undefined;
+        let evolutionEvent = undefined;
+        let evolvedRemnon: { id: string; name: string | null; primary_type: string; evolution_tier: string } | undefined = undefined;
+
+        // 4. Hatch egg only if player has no remnons yet, or all remnons reached max evolution
+        if (newEggKm >= HATCHING_THRESHOLD_KM) {
+          const allAscended =
+            !remnons ||
+            remnons.length === 0 ||
+            remnons.every(m => m.evolution_tier === 'Ascended');
+
+          if (allAscended) {
+            const remainingEggKm = newEggKm - HATCHING_THRESHOLD_KM;
+            await supabase
+              .from('player_stats')
+              .update({ current_egg_km: remainingEggKm, updated_at: new Date().toISOString() })
+              .eq('user_id', userId);
+            playerStats.current_egg_km = remainingEggKm;
+            hatchedRemnon = await hatchRemnon(userId, supabase);
+          }
+        }
+
+        // 5. Award EXP to existing remnons
+        if (remnons && remnons.length > 0) {
           const results = await Promise.all(
-            monsters.map(monster => awardExp(monster, activity, streakDays, supabase))
+            remnons.map(remnon => awardExp(remnon, activity, streakDays, supabase))
           );
           expGained = results.reduce((sum, r) => sum + r.expGained, 0);
-          evolutionEvent = results.find(r => r.evolutionEvent)?.evolutionEvent ?? undefined;
+          const evolvedIdx = results.findIndex(r => r.evolutionEvent);
+          evolutionEvent = evolvedIdx >= 0 ? results[evolvedIdx].evolutionEvent : undefined;
+          if (evolvedIdx >= 0) {
+            const er = remnons[evolvedIdx] as { id: string; name: string | null; primary_type: string };
+            evolvedRemnon = { id: er.id, name: er.name, primary_type: er.primary_type, evolution_tier: results[evolvedIdx].evolutionEvent! };
+          }
+        }
+
+        // 6. Check & complete any active missions
+        const startOfWeek = new Date();
+        startOfWeek.setHours(0, 0, 0, 0);
+        const day = startOfWeek.getDay();
+        startOfWeek.setDate(startOfWeek.getDate() - (day === 0 ? 6 : day - 1));
+        const { data: weekActivities } = await supabase
+          .from('activities')
+          .select('distance_km')
+          .eq('user_id', userId)
+          .gte('logged_at', startOfWeek.toISOString());
+        const weeklyKm = (weekActivities ?? []).reduce(
+          (sum: number, a: { distance_km: number }) => sum + a.distance_km, 0
+        );
+        const completedMissions = await checkAndCompleteMissions(
+          userId, activity, streakDays, weeklyKm, supabase
+        );
+
+        // 7. Replenish skill charges for all remnons based on distance
+        const allRemnonIds = [
+          ...(remnons ?? []).map((r: { id: string }) => r.id),
+          ...(hatchedRemnon ? [hatchedRemnon.id] : []),
+        ];
+        await Promise.all(allRemnonIds.map(id => replenishCharges(id, distance_km, supabase)));
+
+        // 8. Wild challenge — fought by lead remnon (newest hatch or first in list)
+        let challengeResult = undefined;
+        const leadRemnon = hatchedRemnon ?? (remnons && remnons.length > 0 ? (remnons[0] as { id: string; name: string | null; primary_type: string; secondary_type: string | null; evolution_tier: string; attack_power: number; defense_power: number; speed_power: number }) : null);
+        if (leadRemnon) {
+          const leadSkills = await getSkillsForRemnon(leadRemnon.id, supabase);
+          challengeResult = await runWildChallenge(
+            userId,
+            { ...leadRemnon, skills: leadSkills },
+            activity.id,
+            { distance_km, biome, weather },
+            supabase,
+            battle_mode as 'damage' | 'hp'
+          );
         }
 
         return reply.status(201).send({
           activity,
           playerStats,
-          ...(hatchedMonster && { hatchedMonster }),
+          ...(hatchedRemnon && { hatchedRemnon }),
           ...(expGained !== undefined && { expGained }),
           ...(evolutionEvent && { evolutionEvent }),
+          ...(evolvedRemnon && { evolvedRemnon }),
+          ...(completedMissions.length > 0 && { completedMissions }),
+          ...(challengeResult && { challengeResult }),
         });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Unknown error';

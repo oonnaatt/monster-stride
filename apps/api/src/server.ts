@@ -1,9 +1,9 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import jwt from '@fastify/jwt';
 import 'dotenv/config';
 import { activitiesRoutes } from './routes/activities';
-import { monstersRoutes } from './routes/monsters';
+import { remnonsRoutes } from './routes/remnons';
+import { missionsRoutes } from './routes/missions';
 import { supabase } from './lib/supabase';
 
 const server = Fastify({ logger: true });
@@ -30,9 +30,6 @@ server.decorate('authenticate', async function (
 
 async function main() {
   await server.register(cors, { origin: true });
-  await server.register(jwt, {
-    secret: process.env.JWT_SECRET ?? 'fallback-secret-change-in-production',
-  });
 
   server.get('/health', async () => ({
     status: 'ok',
@@ -40,7 +37,8 @@ async function main() {
   }));
 
   await server.register(activitiesRoutes, { prefix: '/api' });
-  await server.register(monstersRoutes, { prefix: '/api' });
+  await server.register(remnonsRoutes, { prefix: '/api' });
+  await server.register(missionsRoutes, { prefix: '/api' });
 
   const port = parseInt(process.env.PORT ?? '3001', 10);
   try {

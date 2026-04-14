@@ -24,6 +24,7 @@ export function useActivities() {
 
   const logActivity = async (data: LogActivityRequest): Promise<LogActivityResponse> => {
     const res = await api.post<LogActivityResponse>('/api/activities', data);
+    setActivities(prev => [res.data.activity, ...prev]);
     return res.data;
   };
 

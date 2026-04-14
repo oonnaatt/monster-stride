@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Remnon, Activity } from '../types/index';
 import type { RemnonType } from '@monster-stride/shared';
 import { FANTASY_SUFFIXES, TYPE_BASE_STATS, DEFAULT_STAT_VALUE, INCUBATION_WINDOW_KM, LOYALTY_INITIAL } from '@monster-stride/shared';
-import { pickRandomSong } from '../lib/remnonSongs';
+import { grantRandomSkill } from './skillService';
 
 function getTypeScores(activities: Activity[]): Map<RemnonType, number> {
   const scores = new Map<RemnonType, number>();
@@ -107,7 +107,7 @@ function calculateStats(types: RemnonType[]): { attack: number; defense: number;
 
   const totals = types.reduce(
     (acc, type) => {
-      const stats = TYPE_BASE_STATS[type as RemnonType];
+      const stats = TYPE_BASE_STATS[type];
       return {
         attack: acc.attack + stats.attack,
         defense: acc.defense + stats.defense,
@@ -124,7 +124,7 @@ function calculateStats(types: RemnonType[]): { attack: number; defense: number;
   };
 }
 
-function generateMonsterName(primaryType: RemnonType): string {
+function generateRemnonName(primaryType: RemnonType): string {
   const suffix = FANTASY_SUFFIXES[Math.floor(Math.random() * FANTASY_SUFFIXES.length)];
   return `${primaryType}${suffix.charAt(0).toUpperCase()}${suffix.slice(1)}`;
 }
@@ -176,8 +176,7 @@ export async function hatchRemnon(userId: string, supabase: SupabaseClient): Pro
 
   const traits = determineTraits(incubationActivities);
   const stats = calculateStats(types);
-  const name = generateMonsterName(types[0]);
-  const themeSong = pickRandomSong(types[0]);
+  const name = generateRemnonName(types[0]);
 
   const monsterData = {
     user_id: userId,
@@ -199,7 +198,6 @@ export async function hatchRemnon(userId: string, supabase: SupabaseClient): Pro
     speed_power: stats.speed,
     loyalty: LOYALTY_INITIAL,
     hatched_at: new Date().toISOString(),
-    theme_song: themeSong,
   };
 
   const { data, error } = await supabase
@@ -208,6 +206,11 @@ export async function hatchRemnon(userId: string, supabase: SupabaseClient): Pro
     .select()
     .single();
 
-  if (error) throw new Error(`Failed to hatch monster: ${error.message}`);
-  return data as Remnon;
+  if (error) throw new Error(`Failed to hatch remnon: ${error.message}`);
+  const newRemnon = data as Remnon;
+
+  // Grant first skill from primary type pool
+  await grantRandomSkill(newRemnon.id, newRemnon.primary_type, newRemnon.secondary_type, 'hatch', supabase);
+
+  return newRemnon;
 }

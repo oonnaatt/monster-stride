@@ -1,8 +1,6 @@
-// DEMO MODE: 100km threshold — production value: 10000km
-export const HATCHING_THRESHOLD_KM = 100;
+export const HATCHING_THRESHOLD_KM = 20;
 
-// DEMO MODE: 50km incubation window — production value: 1000km
-export const INCUBATION_WINDOW_KM = 50;
+export const INCUBATION_WINDOW_KM = 20;
 
 export const EXP_THRESHOLDS = {
   Hatchling: 0,
@@ -40,3 +38,26 @@ export const DEFAULT_STAT_VALUE = 10;
 
 export const MIN_DISTANCE_KM = 0.1;
 export const MAX_DISTANCE_KM = 500;
+
+// Loyalty system
+export const LOYALTY_INITIAL = 50;
+export const LOYALTY_MAX = 100;
+export const LOYALTY_MIN = 0;
+
+// Gains per activity based on birth condition matches
+export const LOYALTY_PACE_MATCH_GAIN = 8;
+export const LOYALTY_BIOME_MATCH_GAIN = 4;
+export const LOYALTY_WEATHER_MATCH_GAIN = 2;
+export const LOYALTY_TIME_MATCH_GAIN = 2;
+
+// Penalty when the player's streak resets
+export const LOYALTY_STREAK_BREAK_PENALTY = 15;
+
+// EXP multiplier applied based on loyalty tier
+export const LOYALTY_TIERS = [
+  { minLoyalty: 91, label: 'Legendary Bond', emoji: '💖', expMultiplier: 1.5 },
+  { minLoyalty: 76, label: 'Devoted',         emoji: '❤️',  expMultiplier: 1.25 },
+  { minLoyalty: 51, label: 'Fond',            emoji: '🧡', expMultiplier: 1.10 },
+  { minLoyalty: 26, label: 'Neutral',         emoji: '🤍', expMultiplier: 1.0 },
+  { minLoyalty: 0,  label: 'Defiant',         emoji: '🖤', expMultiplier: 0.75 },
+] as const;

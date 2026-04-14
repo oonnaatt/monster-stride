@@ -3,15 +3,16 @@ import { useAuth } from './hooks/useAuth';
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './pages/Dashboard';
 import { LogActivity } from './pages/LogActivity';
-import { MyMonsters } from './pages/MyMonsters';
-import { MonsterDetail } from './pages/MonsterDetail';
+import { MyRemnons } from './pages/MyRemnons';
+import { RemnonDetail } from './pages/RemnonDetail';
+import { Missions } from './pages/Missions';
 import { Auth } from './pages/Auth';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center text-gray-400">
+      <div className="min-h-screen flex items-center justify-center text-slate-400">
         Loading...
       </div>
     );
@@ -22,9 +23,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-screen text-slate-800">
       <Navbar />
-      <main>{children}</main>
+      <main className="pb-20 md:pb-0">{children}</main>
     </div>
   );
 }
@@ -51,18 +52,26 @@ export default function App() {
           }
         />
         <Route
-          path="/monsters"
+          path="/remnons"
           element={
             <ProtectedRoute>
-              <AppLayout><MyMonsters /></AppLayout>
+              <AppLayout><MyRemnons /></AppLayout>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/monsters/:id"
+          path="/remnons/:id"
           element={
             <ProtectedRoute>
-              <AppLayout><MonsterDetail /></AppLayout>
+              <AppLayout><RemnonDetail /></AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/missions"
+          element={
+            <ProtectedRoute>
+              <AppLayout><Missions /></AppLayout>
             </ProtectedRoute>
           }
         />
