@@ -44,6 +44,8 @@ async function main() {
   // Disable CSP (handled client-side via meta tag) but enable all other protections.
   await server.register(helmet, {
     contentSecurityPolicy: false,
+    // COEP is disabled because this API serves cross-origin requests from the
+    // frontend and does not embed cross-origin resources that require isolation.
     crossOriginEmbedderPolicy: false,
   });
 

@@ -17,6 +17,7 @@ RUN pnpm --filter @monster-stride/api build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+RUN apk add --no-cache wget
 COPY --from=build /app/apps/api/dist ./dist
 COPY --from=build /app/apps/api/node_modules ./node_modules
 EXPOSE 3001

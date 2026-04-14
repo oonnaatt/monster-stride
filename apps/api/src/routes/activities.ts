@@ -48,7 +48,7 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
         rateLimit: {
           max: 10,
           timeWindow: '1 minute',
-          keyGenerator: (request) => (request as any).userId ?? request.ip,
+          keyGenerator: (request) => request.userId ?? request.ip,
         },
       },
     },
