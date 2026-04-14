@@ -37,8 +37,12 @@ export async function activitiesRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // Stricter limit: posting an activity triggers heavy DB work + AI services.
+  // Allow at most 30 submissions per IP per minute (generous for real users,
+  // tight enough to blunt automated floods).
   fastify.post<{ Body: LogActivityRequest }>(
     '/activities',
+    { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } },
     async (request: FastifyRequest<{ Body: LogActivityRequest }>, reply: FastifyReply) => {
       try {
         const { distance_km, pace, biome, weather, time_of_day, season, elevation_gain_m = 0, battle_mode = 'damage' } = request.body;

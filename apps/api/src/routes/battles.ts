@@ -14,8 +14,11 @@ export async function battlesRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', fastify.authenticate);
 
   // POST /api/battles/wild — trigger a wild encounter mid-tracking (no activity required)
+  // Stricter limit: each call runs the battle engine + DB writes.
+  // 60 per minute ≈ one encounter every second, well above real-play cadence.
   fastify.post<{ Body: WildBattleBody }>(
     '/battles/wild',
+    { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } },
     async (request: FastifyRequest<{ Body: WildBattleBody }>, reply: FastifyReply) => {
       try {
         const {
