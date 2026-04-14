@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { activitiesRoutes } from './routes/activities';
 import { remnonsRoutes } from './routes/remnons';
 import { missionsRoutes } from './routes/missions';
+import { battlesRoutes } from './routes/battles';
 import { supabase } from './lib/supabase';
 
 const server = Fastify({ logger: true });
@@ -39,6 +40,7 @@ async function main() {
   await server.register(activitiesRoutes, { prefix: '/api' });
   await server.register(remnonsRoutes, { prefix: '/api' });
   await server.register(missionsRoutes, { prefix: '/api' });
+  await server.register(battlesRoutes, { prefix: '/api' });
 
   const port = parseInt(process.env.PORT ?? '3001', 10);
   try {

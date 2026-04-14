@@ -5,7 +5,8 @@ const TAB_LINKS = [
   { to: '/',        emoji: '🏠', label: 'Home' },
   { to: '/remnons', emoji: '👾', label: 'Remnons' },
   { to: '/missions',emoji: '🎯', label: 'Missions' },
-  { to: '/log',     emoji: '🏃', label: 'Log' },
+  { to: '/log',     emoji: '📋', label: 'Log' },
+  { to: '/track',   emoji: '👟', label: 'Track' },
 ];
 
 export function Navbar() {

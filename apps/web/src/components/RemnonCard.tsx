@@ -40,7 +40,7 @@ export function RemnonCard({ remnon, onUpdate }: RemnonCardProps) {
 
   return (
     <div
-      className="bg-white border border-violet-100 rounded-2xl p-4 hover:border-violet-400 hover:shadow-md transition-all cursor-pointer"
+      className="bg-white border border-violet-200 rounded-2xl p-4 hover:border-violet-500 hover:shadow-md transition-all cursor-pointer"
       onClick={() => navigate(`/remnons/${remnon.id}`)}
     >
       <div className="text-5xl text-center mb-3">{emoji}</div>

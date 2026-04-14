@@ -76,7 +76,7 @@ function pickWildName(type: string): string {
 export async function runWildChallenge(
   userId: string,
   remnon: RemnonForBattle,
-  activityId: string,
+  activityId: string | null,
   activity: ActivitySnapshot,
   supabase: SupabaseClient,
   battleMode: 'damage' | 'hp' = 'damage'

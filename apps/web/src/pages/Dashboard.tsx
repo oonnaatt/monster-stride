@@ -67,7 +67,7 @@ export function Dashboard() {
       {/* Featured Remnon / Egg Incubator */}
       {!remnonLoading && featured ? (
         <div
-          className="bg-white rounded-2xl border border-violet-100 shadow-sm overflow-hidden cursor-pointer hover:border-violet-300 hover:shadow-md transition-all"
+          className="bg-white rounded-2xl border border-violet-200 shadow-sm overflow-hidden cursor-pointer hover:border-violet-400 hover:shadow-md transition-all"
           onClick={() => navigate(`/remnons/${featured.id}`)}
         >
           {/* Header band */}
@@ -135,7 +135,7 @@ export function Dashboard() {
           </div>
 
           {/* Mini stats footer */}
-          <div className="border-t border-violet-50 px-5 py-2.5 flex justify-around text-xs text-slate-400 bg-violet-50/50">
+          <div className="border-t border-violet-200 px-5 py-2.5 flex justify-around text-xs text-slate-400 bg-violet-50/50">
             <span>⚔️ {featured.attack_power}</span>
             <span>🛡️ {featured.defense_power}</span>
             <span>💨 {featured.speed_power}</span>
@@ -159,21 +159,21 @@ export function Dashboard() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-4 text-center border border-violet-100 shadow-sm">
+        <div className="bg-white rounded-2xl p-4 text-center border border-violet-200 shadow-sm">
           <div className="text-2xl">🏃</div>
           <div className="text-xl font-bold text-slate-800 mt-1">
             {statsLoading ? '...' : (stats ? Number(stats.total_km).toFixed(1) : '0.0')}
           </div>
           <div className="text-slate-400 text-xs">Total km</div>
         </div>
-        <div className="bg-white rounded-2xl p-4 text-center border border-orange-100 shadow-sm">
+        <div className="bg-white rounded-2xl p-4 text-center border border-orange-200 shadow-sm">
           <div className="text-2xl">🔥</div>
           <div className="text-xl font-bold text-slate-800 mt-1">
             {statsLoading ? '...' : (stats?.streak_days ?? 0)}
           </div>
           <div className="text-slate-400 text-xs">Day streak</div>
         </div>
-        <div className="bg-white rounded-2xl p-4 text-center border border-fuchsia-100 shadow-sm">
+        <div className="bg-white rounded-2xl p-4 text-center border border-fuchsia-200 shadow-sm">
           <div className="text-2xl">👾</div>
           <div className="text-xl font-bold text-slate-800 mt-1">
             {remnonLoading ? '...' : remnons.length}
@@ -196,7 +196,7 @@ export function Dashboard() {
         {remnonLoading ? (
           <div className="text-slate-400">Loading...</div>
         ) : recentRemnons.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center border border-violet-100 shadow-sm">
+          <div className="bg-white rounded-xl p-8 text-center border border-violet-200 shadow-sm">
             <div className="text-4xl mb-3">🥚</div>
             <p className="text-slate-400">No remnons yet, start walking!</p>
           </div>

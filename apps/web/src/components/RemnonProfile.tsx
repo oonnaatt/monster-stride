@@ -69,7 +69,7 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
       </div>
 
       {/* Personality */}
-      <div className="bg-gradient-to-r from-fuchsia-50 to-violet-50 border border-violet-100 rounded-xl p-4">
+      <div className="bg-gradient-to-r from-fuchsia-50 to-violet-50 border border-violet-200 rounded-xl p-4">
         <h3 className="text-slate-700 font-semibold mb-2">💫 Personality</h3>
         <div className="flex items-start gap-3">
           <span className="text-3xl">{personality.icon}</span>
@@ -78,11 +78,11 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
       </div>
 
       {/* Likes */}
-      <div className="bg-rose-50 border border-rose-100 rounded-xl p-4">
+      <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
         <h3 className="text-slate-700 font-semibold mb-3">💝 Likes</h3>
         <div className="flex flex-wrap gap-2">
           {likes.map(like => (
-            <span key={like} className="bg-white border border-rose-200 rounded-lg px-3 py-1 text-slate-600 text-xs font-medium shadow-sm">
+            <span key={like} className="bg-white border border-rose-300 rounded-lg px-3 py-1 text-slate-600 text-xs font-medium shadow-sm">
               {like}
             </span>
           ))}
@@ -90,7 +90,7 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
       </div>
 
       {/* Vibe Song */}
-      <div className="bg-gradient-to-r from-rose-50 to-fuchsia-50 border border-fuchsia-100 rounded-xl p-4">
+      <div className="bg-gradient-to-r from-rose-50 to-fuchsia-50 border border-fuchsia-200 rounded-xl p-4">
         <h3 className="text-slate-700 font-semibold mb-3">🎵 Vibe Song</h3>
         {song ? (
           <>
@@ -119,7 +119,7 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
       </div>
 
       {/* Birth Story */}
-      <div className="bg-violet-50 border border-violet-100 rounded-xl p-4">
+      <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
         <h3 className="text-slate-700 font-semibold mb-2">📖 Birth Story</h3>
         <p className="text-slate-500 text-sm">
           Born from the journey of a{' '}
@@ -132,7 +132,7 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
       </div>
 
       {/* Loyalty */}
-      <div className="bg-pink-50 border border-pink-100 rounded-xl p-4">
+      <div className="bg-pink-50 border border-pink-200 rounded-xl p-4">
         <h3 className="text-slate-700 font-semibold mb-3">💗 Loyalty</h3>
         <div className="flex items-center gap-3 mb-2">
           <span className="text-2xl">{loyaltyTier.emoji}</span>
@@ -155,11 +155,11 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
 
       {/* Traits */}
       {remnon.traits && remnon.traits.length > 0 && (
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
           <h3 className="text-slate-700 font-semibold mb-3">✨ Traits</h3>
           <div className="flex flex-wrap gap-2">
             {remnon.traits.map(trait => (
-              <div key={trait} className="bg-white border border-amber-200 rounded-lg px-3 py-1.5 shadow-sm">
+              <div key={trait} className="bg-white border border-amber-300 rounded-lg px-3 py-1.5 shadow-sm">
                 <span className="text-slate-800 text-sm font-medium">{trait}</span>
                 {TRAIT_DESCRIPTIONS[trait] && (
                   <p className="text-slate-400 text-xs mt-0.5">{TRAIT_DESCRIPTIONS[trait]}</p>
@@ -171,7 +171,7 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
       )}
 
       {/* Stats */}
-      <div className="bg-white border border-violet-100 rounded-xl p-4 shadow-sm">
+      <div className="bg-white border border-violet-200 rounded-xl p-4 shadow-sm">
         <h3 className="text-slate-700 font-semibold mb-3">📊 Stats</h3>
         <div className="space-y-3">
           {[
@@ -196,7 +196,7 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
       </div>
 
       {/* Skills */}
-      <div className="bg-white border border-violet-100 rounded-xl p-4 shadow-sm">
+      <div className="bg-white border border-violet-200 rounded-xl p-4 shadow-sm">
         <h3 className="text-slate-700 font-semibold mb-3">
           ⚔️ Skills{' '}
           <span className="text-xs text-slate-400 font-normal">({skills.length}/5)</span>
@@ -206,7 +206,7 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
             const def = SKILLS.find(s => s.id === sk.skill_id);
             if (!def) return null;
             return (
-              <div key={sk.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div key={sk.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
                 <span className="text-2xl">{def.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
@@ -228,7 +228,7 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
             );
           })}
           {skills.length < 5 && Array.from({ length: 5 - skills.length }).map((_, i) => (
-            <div key={`locked-${i}`} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-dashed border-slate-200">
+            <div key={`locked-${i}`} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-dashed border-slate-300">
               <span className="text-2xl opacity-25">❓</span>
               <span className="text-slate-300 text-xs">Locked — discover through battles, evolution &amp; missions</span>
             </div>
@@ -237,13 +237,13 @@ export function RemnonProfile({ remnon, skills = [] }: RemnonProfileProps) {
       </div>
 
       {/* Evolution Tree */}
-      <div className="bg-white border border-violet-100 rounded-xl p-4 shadow-sm">
+      <div className="bg-white border border-violet-200 rounded-xl p-4 shadow-sm">
         <h3 className="text-slate-700 font-semibold mb-3">🧬 Evolution Journey</h3>
         <EvolutionTree currentTier={remnon.evolution_tier} />
       </div>
 
       {/* EXP Progress */}
-      <div className="bg-white border border-violet-100 rounded-xl p-4 shadow-sm">
+      <div className="bg-white border border-violet-200 rounded-xl p-4 shadow-sm">
         <h3 className="text-slate-700 font-semibold mb-2">⭐ EXP Progress</h3>
         <div className="flex justify-between text-sm text-slate-500 mb-2">
           <span>{remnon.evolution_tier}</span>

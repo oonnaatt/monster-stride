@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth';
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './pages/Dashboard';
 import { LogActivity } from './pages/LogActivity';
+import { LiveTrack } from './pages/LiveTrack';
 import { MyRemnons } from './pages/MyRemnons';
 import { RemnonDetail } from './pages/RemnonDetail';
 import { Missions } from './pages/Missions';
@@ -72,6 +73,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AppLayout><Missions /></AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/track"
+          element={
+            <ProtectedRoute>
+              <AppLayout><LiveTrack /></AppLayout>
             </ProtectedRoute>
           }
         />
