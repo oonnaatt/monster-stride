@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStepTracker } from '../hooks/useStepTracker';
+import { useEnvironmentDetector } from '../hooks/useEnvironmentDetector';
 import { useActivities } from '../hooks/useActivities';
 import { BattleModal } from '../components/BattleModal';
 import { getRemnonEmoji, getTypeBadgeClass } from '../lib/remnonVisuals';
@@ -109,6 +110,7 @@ export function LiveTrack() {
   const navigate = useNavigate();
   const { logActivity } = useActivities();
   const { state, start, pause, resume, stop, reset } = useStepTracker();
+  const env = useEnvironmentDetector();
 
   // 'track' = live tracking view, 'complete' = post-session form
   const [phase, setPhase] = useState<'track' | 'complete'>('track');
@@ -132,6 +134,18 @@ export function LiveTrack() {
   const [encounterLog, setEncounterLog]     = useState<EncounterRecord[]>([]);
   const lastEncounterStepRef = useRef<number>(0);
   const encounterIdRef       = useRef(0);
+
+  // Sync auto-detected values into local state each time detection completes
+  const prevDetecting = useRef(false);
+  useEffect(() => {
+    const justFinished = prevDetecting.current && !env.detecting && !env.error;
+    prevDetecting.current = env.detecting;
+    if (!justFinished) return;
+    setTrackBiome(env.biome);
+    setTrackWeather(env.weather);
+    setTimeOfDay(env.timeOfDay);
+    setSeason(env.season);
+  }, [env.detecting, env.error, env.biome, env.weather, env.timeOfDay, env.season]);
 
   useEffect(() => {
     if (state.status !== 'tracking') return;
@@ -492,11 +506,23 @@ export function LiveTrack() {
       {isIdle && (
         <div className="mb-4 space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Where are you?</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Biome</p>
+              {env.detecting
+                ? <span className="text-[10px] text-violet-400 font-semibold animate-pulse">📍 Detecting…</span>
+                : <span className="text-[10px] text-emerald-500 font-semibold">📍 Auto-detected · tap to change</span>
+              }
+            </div>
             <SelectorGrid items={BIOMES} selected={trackBiome} onSelect={v => setTrackBiome(v as Biome)} cols={3} />
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Weather</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Weather</p>
+              {env.detecting
+                ? <span className="text-[10px] text-violet-400 font-semibold animate-pulse">🌤️ Detecting…</span>
+                : <span className="text-[10px] text-emerald-500 font-semibold">🌤️ Auto-detected · tap to change</span>
+              }
+            </div>
             <SelectorGrid items={WEATHERS} selected={trackWeather} onSelect={v => setTrackWeather(v as Weather)} cols={3} />
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
@@ -521,6 +547,21 @@ export function LiveTrack() {
               🏗️ ~{ENCOUNTER_INTERVAL} steps per encounter check &middot; {Math.round(ENCOUNTER_CHANCE * 100)}% chance
             </p>
           </div>
+
+          {!env.detecting && env.error && (
+            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2 text-center">
+              ⚠️ {env.error}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={env.refresh}
+            disabled={env.detecting}
+            className="w-full text-xs text-violet-400 font-medium py-1.5 hover:text-violet-600 transition-colors disabled:opacity-40"
+          >
+            {env.detecting ? '🔍 Detecting environment…' : '🔄 Re-detect biome & weather'}
+          </button>
         </div>
       )}
 
