@@ -107,52 +107,40 @@ EXP is awarded based on:
 ### Prerequisites
 
 - A [Supabase](https://supabase.com) project (database + auth)
-- A [Fly.io](https://fly.io) account for the API
+- A [Render](https://render.com) account for the API (free, no credit card needed)
 - A [Vercel](https://vercel.com) account for the frontend
 
-### Fly.io Setup (API)
+### Render Setup (API)
 
-1. **Install flyctl**
-   ```bash
-   brew install flyctl
-   # or
-   curl -L https://fly.io/install.sh | sh
-   ```
+1. Go to [render.com](https://render.com) and sign up (free, no credit card needed)
+2. Click **New → Web Service** → connect your GitHub repo `oonnaatt/monster-stride`
+3. Set **Root Directory** to leave blank (`render.yaml` at root will be detected automatically), or manually configure:
+   - **Environment**: Docker
+   - **Dockerfile Path**: `./apps/api/Dockerfile`
+   - **Docker Context**: `.` (repo root)
+4. Add environment variables in the Render dashboard:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `ALLOWED_ORIGINS` (your Vercel frontend URL)
+5. Copy your **Service ID** (starts with `srv-`) from the service Settings page
+6. Go to **Account Settings → API Keys** → create a key → copy it
+7. Add `RENDER_API_KEY` and `RENDER_SERVICE_ID` as GitHub Actions secrets
 
-2. **Login**
-   ```bash
-   fly auth login
-   ```
-
-3. **Create the app**
-   ```bash
-   cd apps/api && fly apps create monster-stride-api
-   ```
-
-4. **Set secrets on Fly**
-   ```bash
-   fly secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... ALLOWED_ORIGINS=... --app monster-stride-api
-   ```
-
-5. **Get your API token** — run `fly auth token` and add the output as the `FLY_API_TOKEN` GitHub secret.
-
-6. **First deploy** — push to `main` or run from the repo root:
-   ```bash
-   fly deploy --config apps/api/fly.toml --dockerfile apps/api/Dockerfile
-   ```
+> **Note:** Render's free tier spins the service down after 15 minutes of inactivity — the first request after idle will take ~30 seconds (cold start). This is normal on the free plan.
 
 ### GitHub Actions Secrets
 
 Go to **Settings → Secrets and variables → Actions** in your GitHub repository and add the following secrets:
 
-| Secret | Description |
-|--------|-------------|
-| `VERCEL_TOKEN` | Vercel personal access token (Account Settings → Tokens) |
-| `VERCEL_ORG_ID` | Your Vercel team/org ID (Project Settings) |
-| `VERCEL_PROJECT_ID` | Your Vercel project ID (Project Settings) |
-| `FLY_API_TOKEN` | Fly.io API token — run `fly auth token` or get from the Fly.io dashboard |
-| `SUPABASE_ACCESS_TOKEN` | Supabase personal access token (Account → Access Tokens) |
-| `SUPABASE_PROJECT_REF` | Your Supabase project reference ID |
+| Secret | Where to get it |
+|--------|-----------------|
+| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens |
+| `VERCEL_ORG_ID` | Vercel → Project Settings |
+| `VERCEL_PROJECT_ID` | Vercel → Project Settings |
+| `RENDER_API_KEY` | Render dashboard → Account Settings → API Keys |
+| `RENDER_SERVICE_ID` | Render dashboard → your service → Settings → Service ID (starts with `srv-`) |
+| `SUPABASE_ACCESS_TOKEN` | Supabase → Account → Access Tokens |
+| `SUPABASE_PROJECT_REF` | Supabase → Project Settings → General |
 
 ### Vercel Environment Variables (Frontend)
 
@@ -161,7 +149,7 @@ Set these in your Vercel project settings:
 ```
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_API_URL=https://monster-stride-api.fly.dev
+VITE_API_URL=https://monster-stride-api.onrender.com
 ```
 
 ### CI/CD Pipeline
@@ -170,5 +158,5 @@ VITE_API_URL=https://monster-stride-api.fly.dev
 - **Deploy** (`.github/workflows/deploy.yml`): Triggered on merge to `main`:
   1. Builds and lints the full monorepo
   2. Deploys the frontend (`apps/web`) to **Vercel**
-  3. Deploys the API (`apps/api`) to **Fly.io** using the multi-stage `Dockerfile`
+  3. Triggers the API (`apps/api`) deploy on **Render** via REST API
   4. Runs `supabase db push` to apply pending database migrations
